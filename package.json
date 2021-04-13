@@ -1,0 +1,23 @@
+{
+  "name": "aaptjs3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "aapt",
+    "aaptjs",
+    "node-aapt",
+    "apktool",
+    "android",
+    "apk-resolve"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kiliaosi/aaptjs3.git"
+  },
+  "author": "kiliaosi",
+  "license": "MIT"
+}
