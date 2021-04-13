@@ -1,3 +1,10 @@
+<!--
+ * @Author: kiliaosi
+ * @Date: 2021-04-13 12:44:31
+ * @LastEditors: kiliaosi
+ * @LastEditTime: 2021-04-13 13:29:59
+ * @Description:
+-->
 
 # aaptjs3
 Implementation of aapt in nodejs
@@ -17,7 +24,7 @@ yarn add aaptjs3
 ## Example
 
 ```js
-const aapt = require('aaptjs2');
+const aapt = require('aaptjs3');
 
 aapt.list('/path/to/your/ExampleApp.apk', ['-a'])
   .then (data => {
