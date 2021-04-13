@@ -17,7 +17,7 @@ yarn add aaptjs3
 ## Example
 
 ```js
-const aapt = require('aaptjs2');
+const aapt = require('aaptjs3');
 
 aapt.list('/path/to/your/ExampleApp.apk', ['-a'])
   .then (data => {
