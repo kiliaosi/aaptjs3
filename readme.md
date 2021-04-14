@@ -1,11 +1,3 @@
-<!--
- * @Author: kiliaosi
- * @Date: 2021-04-13 12:44:31
- * @LastEditors: kiliaosi
- * @LastEditTime: 2021-04-13 16:25:17
- * @Description:
--->
-
 # aaptjs3
 Implementation of aapt in nodejs
 
