@@ -43,26 +43,26 @@ function packageCmd(filePath, command) {
 
 function remove(filePath, files) {
   if (!Array.isArray(files)) {
-    throw new Error('args files must be Array!');
+    files = [files];
   }
   return aapt(['r', filePath, ...files]);
 }
 
 function add(filePath, files) {
   if (!Array.isArray(files)) {
-    throw new Error('args files must be Array!');
+    files = [files];
   }
   return aapt(['a', filePath, ...files]);
 }
 
 function crunch(resource, outputFolder) {
   if (!Array.isArray(resource)) {
-    throw new Error('args files must be Array!');
+    resource = [resource];
   }
   return aapt(['c', '-S', ...resource, '-C', outputFolder]);
 }
 
-function singleCrunch(inputFile, outputfile) {
+function singleCrunch(inputFile, outputFile) {
   return aapt(['s', '-i', inputFile, '-o', outputFile]);
 }
 
@@ -74,17 +74,23 @@ async function getApkInfo(apkPath) {
   const { stdout } = await dump(apkPath, 'badging');
   const match = stdout.match(/name='([^']+)'[\s]*versionCode='(\d+)'[\s]*versionName='([^']+)/);
   const matchName = stdout.match(/application: label='([^']+)'[\s]*icon='([^']+)/);
+
+  if (!match) {
+    throw new Error('无法从APK中解析包名和版本号，可能是无效的APK文件');
+  }
+
   const info = {
     package: match[1],
     version: match[3],
-    name: matchName[1],
-    icon: matchName[2],
+    name: matchName ? matchName[1] : '',
+    icon: matchName ? matchName[2] : '',
   };
+
   if (!info.package || !info.version) {
-    throw (new Error('Invalid Apk File'));
+    throw new Error('Invalid Apk File');
   }
 
-  if(!info.name) {
+  if (!info.name) {
     console.warn('apk name get error! please use : aapt d xmltree...');
   }
   return info;

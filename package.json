@@ -1,10 +1,17 @@
 {
   "name": "aaptjs3",
-  "version": "1.0.4",
-  "description": "",
+  "version": "1.0.8",
+  "description": "Node.js wrapper for Android Asset Packaging Tool (aapt), bundled with prebuilt binaries for Windows, macOS, and Linux.",
   "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "bin/",
+    "LICENSE"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node -e \"const aapt = require('./'); aapt.getApkInfo('./test/test.apk').then(r => { console.log('PASS:', JSON.stringify(r)); process.exit(0); }).catch(e => { console.error('FAIL:', e.message); process.exit(1); });\""
   },
   "keywords": [
     "aapt",
