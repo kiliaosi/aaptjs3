@@ -1,17 +1,16 @@
 # aaptjs3
 
-Node.js wrapper for Android Asset Packaging Tool (aapt). Bundles prebuilt aapt binaries — no Android SDK installation required.
+Node.js wrapper for **[aapt2](https://developer.android.com/tools/aapt2)** (Android Asset Packaging Tool 2). Bundles prebuilt aapt2 binaries — no Android SDK installation required.
 
-> **Note:** This package ships **aapt1** which was deprecated by Google in 2019. It works for most APK inspection tasks but may fail on newer APKs (targetSdk 34+). An aapt2 upgrade is planned.
+> **v2.0.0** upgrades from aapt1 to aapt2. If you need aapt1, use `aaptjs3@^1.0.9` or the `legacy-aapt1` branch.
 
 ## Platform Support
 
 | Platform | Architecture | Status |
 |----------|-------------|--------|
 | Windows  | x64         | ✅     |
-| macOS    | x64         | ✅     |
+| macOS    | x64 / ARM64 | ✅     |
 | Linux    | x64         | ✅     |
-| Linux    | ARM         | ✅     |
 
 ## Install
 
@@ -19,20 +18,36 @@ Node.js wrapper for Android Asset Packaging Tool (aapt). Bundles prebuilt aapt b
 npm install aaptjs3 --save
 ```
 
-## Example
+## Quick Start
 
 ```js
 const aapt = require('aaptjs3');
 
 // Dump APK metadata
-aapt.dump('/path/to/app.apk', 'badging')
-  .then(data => console.log(data.stdout))
-  .catch(err => console.error(err));
+const { stdout } = await aapt.dump('app.apk', 'badging');
+console.log(stdout);
 
 // Get structured APK info
-aapt.getApkInfo('/path/to/app.apk')
-  .then(info => console.log(info))
-  .catch(err => console.error(err));
+const info = await aapt.getApkInfo('app.apk');
+// { package: 'com.example.app', version: '1.0.0',
+//   name: 'My App', icon: 'res/mipmap/ic_launcher.png' }
+
+// List APK contents
+const { stdout: files } = await aapt.list('app.apk');
+```
+
+## Custom Binary
+
+Configure your own aapt binary — version auto-detected:
+
+```js
+const aapt = require('aaptjs3');
+
+// Use a custom aapt binary
+await aapt.configure({ binPath: '/path/to/custom/aapt' });
+
+// If the path is broken or version can't be detected,
+// falls back to built-in aapt2 with a warning.
 ```
 
 ## API
@@ -51,79 +66,62 @@ interface PackageInfo {
 }
 ```
 
+### `configure(opts: { binPath?: string }): Promise<void>`
+
+Configure a custom aapt binary. Version is auto-detected. All subsequent API calls use the configured binary. If the path is invalid or version unknown, falls back to built-in aapt2.
+
+### `getBinPath(): string`
+
+Returns the currently active aapt binary path.
+
 ### `aapt(commandArgs: string[], maxBuffer?: number): Promise<ExecResult>`
 
-Low-level API. Execute aapt with arbitrary arguments.
+Low-level execution of the active aapt binary with arbitrary arguments.
+
+### `dump(apkPath: string, value: string, extraArgs?: string[]): Promise<ExecResult>`
+
+Dump APK information. Supported subcommands: `badging`, `strings`, `resources`, `permissions`, `configurations`, `packagename`, `styleparents`, `apc`, `overlayable`, `chunks`, `xmltree`, `xmlstrings`.
 
 ```js
-aapt(['d', 'badging', 'app.apk']).then(r => console.log(r.stdout));
+// Simple dumping
+await aapt.dump('app.apk', 'badging');
+await aapt.dump('app.apk', 'permissions');
+await aapt.dump('app.apk', 'packagename');
+
+// xmltree/xmlstrings need --file flag
+await aapt.dump('app.apk', 'xmltree', ['--file', 'AndroidManifest.xml']);
 ```
 
-### `dump(apkPath: string, value: string): Promise<ExecResult>`
+### `list(apkPath: string): Promise<ExecResult>`
 
-Dump APK information. Common values: `badging`, `xmltree`, `strings`, `resources`, `permissions`, `configurations`.
-
-```js
-aapt.dump('app.apk', 'badging');
-aapt.dump('app.apk', 'xmltree');
-```
-
-### `list(apkPath: string, args?: string[]): Promise<ExecResult>`
-
-List APK contents.
-
-```js
-aapt.list('app.apk', ['-a']);  // verbose listing
-aapt.list('app.apk');          // simple listing
-```
-
-### `packageCmd(filePath: string, command: string): Promise<ExecResult>`
-
-Package command. See aapt `p` subcommand.
-
-### `remove(filePath: string, files: string | string[]): Promise<ExecResult>`
-
-Remove files from APK/ZIP.
-
-```js
-aapt.remove('app.apk', 'res/icon.png');
-aapt.remove('app.apk', ['res/icon.png', 'res/logo.png']);
-```
-
-### `add(filePath: string, files: string | string[]): Promise<ExecResult>`
-
-Add files to APK/ZIP.
-
-```js
-aapt.add('app.apk', 'new-file.png');
-aapt.add('app.apk', ['new-file.png', 'lib/foo.so']);
-```
-
-### `crunch(resource: string | string[], outputFolder: string): Promise<ExecResult>`
-
-Crunch PNG resources.
-
-```js
-aapt.crunch('res/drawable', 'out/res');
-aapt.crunch(['res/drawable', 'res/mipmap'], 'out/res');
-```
-
-### `singleCrunch(inputFile: string, outputFile: string): Promise<ExecResult>`
-
-Crunch a single PNG file.
-
-```js
-aapt.singleCrunch('input.png', 'output.png');
-```
+List APK contents. In aapt2 mode, reads the ZIP central directory directly.
 
 ### `getApkInfo(apkPath: string): Promise<PackageInfo>`
 
-Extract package name, version, app label, and icon from an APK.
+Extract package name, version, app label, and icon.
 
-```js
-const info = await aapt.getApkInfo('app.apk');
-// { package: 'com.example.app', version: '1.0.0', name: 'My App', icon: 'res/mipmap/ic_launcher.png' }
-```
+### Deprecated APIs (aapt1 only)
+
+These throw errors in default aapt2 mode. They work only if you configure a custom aapt1 binary:
+
+| Function | aapt2 Replacement |
+|----------|------------------|
+| `packageCmd()` | `aapt2 compile` + `aapt2 link` |
+| `remove()` | `aapt2 optimize` or zip tools |
+| `add()` | `aapt2 compile` + `aapt2 link` |
+| `crunch()` | `aapt2 compile` |
+| `singleCrunch()` | `aapt2 compile` |
+
+## Migration from v1.x
+
+| v1.x | v2.x |
+|------|------|
+| `dump(apk, value)` | Same, or `dump(apk, value, extraArgs)` |
+| `list(apk, args)` | `list(apk)` — args ignored, reads ZIP |
+| `getApkInfo(apk)` | Same |
+| `packageCmd()` | ❌ Throws |
+| `remove()` / `add()` | ❌ Throws |
+| `crunch()` / `singleCrunch()` | ❌ Throws |
 
 ## License
 
