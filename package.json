@@ -1,6 +1,6 @@
 {
   "name": "aaptjs3",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Node.js wrapper for Android Asset Packaging Tool (aapt), bundled with prebuilt binaries for Windows, macOS, and Linux.",
   "main": "index.js",
   "types": "index.d.ts",
